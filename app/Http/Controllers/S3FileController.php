@@ -12,33 +12,47 @@ class S3FileController extends Controller
 {
     public function upload(Request $request)
     {
-        $request->validate([
-            'file' => 'required|file',
-            'user_uuid' => 'required|uuid',
-        ]);
+//        $request->validate([
+//            'file' => 'required|file',
+//            'user_uuid' => 'required|uuid',
+//        ]);
+//
+//        $file = $request->file('file');
+//        $userUuid = $request->input('user_uuid');
+//
+//        $path = $file->store("boomi/{$userUuid}", 's3');
+//        $url = Storage::disk('s3')->url($path);
+//
+//        $payload = [
+//            'user_uuid' => $userUuid,
+//            'filename' => $file->getClientOriginalName(),
+//            'file_size' => $file->getSize(),
+//            'mime_type' => $file->getMimeType(),
+//            'extension' => $file->getClientOriginalExtension(),
+//            's3_path' => $path,
+//            's3_url' => $url,
+//        ];
+//        $s3File = S3File::create($payload);
+//
+//        return response()->json([
+//            'message' => 'File uploaded successfully',
+//            'url' => $url,
+//            'file_id' => $s3File->id
+//        ]);
+        $fileName = $request->header('X-File-Name');
+        $table = $request->header('X-Table-Name');
+        $recordId = $request->header('X-Record-Id');
 
-        $file = $request->file('file');
-        $userUuid = $request->input('user_uuid');
+        $content = $request->getContent();
 
-        $path = $file->store("boomi/{$userUuid}", 's3');
-        $url = Storage::disk('s3')->url($path);
+        $path = "attachments/$table/$recordId/$fileName";
 
-        $payload = [
-            'user_uuid' => $userUuid,
-            'filename' => $file->getClientOriginalName(),
-            'file_size' => $file->getSize(),
-            'mime_type' => $file->getMimeType(),
-            'extension' => $file->getClientOriginalExtension(),
-            's3_path' => $path,
-            's3_url' => $url,
-        ];
-        $s3File = S3File::create($payload);
+        Storage::disk('s3')->put($path, $content);
 
         return response()->json([
-            'message' => 'File uploaded successfully',
-            'url' => $url,
-            'file_id' => $s3File->id
-        ]);
+            'success' => true,
+            'path' => $path
+        ], 201);
     }
 
     /**

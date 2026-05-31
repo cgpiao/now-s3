@@ -181,32 +181,26 @@ class S3FileController extends Controller
     /**
      * 2.6 获取访问S3文件所用的临时凭证接口
      */
-    public function getTemporaryCredentials()
+    public function getTemporaryCredentials(Request $request)
     {
-        $stsClient = new StsClient([
-            'region' => config('filesystems.disks.s3.region'),
-            'version' => 'latest',
-            'credentials' => [
-                'key'    => config('filesystems.disks.s3.key'),
-                'secret' => config('filesystems.disks.s3.secret'),
-            ],
-        ]);
+        $dir = $request->input('dir');
+        $files = Storage::disk('s3')->files(
+            $dir
+        );
 
-        // 注意：在实际生产环境中，您应该为这个 Session 指定一个具有最小权限的 Role ARN
-        // 或者是使用当前 IAM 用户的权限（如果不指定 RoleArn，有些 STS 操作受限）
-        // 这里演示获取 Session Token
-        try {
-            $result = $stsClient->getSessionToken();
+        $result = [];
 
-            return response()->json([
-                'AccessKeyId' => $result['Credentials']['AccessKeyId'],
-                'SecretAccessKey' => $result['Credentials']['SecretAccessKey'],
-                'SessionToken' => $result['Credentials']['SessionToken'],
-                'Expiration' => $result['Credentials']['Expiration'],
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to get temporary credentials', 'error' => $e->getMessage()], 500);
+        foreach ($files as $file) {
+            $result[] = [
+                'path' => $file,
+                'url' => Storage::disk('s3')->temporaryUrl(
+                    $file,
+                    now()->addHour()
+                )
+            ];
         }
+
+        return response()->json($result);
     }
 
     public function download2(Request $request)

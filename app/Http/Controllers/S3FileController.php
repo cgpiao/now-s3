@@ -55,10 +55,28 @@ class S3FileController extends Controller
         ], 201);
     }
 
+    public function download(Request $request)
+{
+    $request->validate([
+        'path' => 'required|string'
+    ]);
+
+    $path = $request->input('path');
+
+    $url = Storage::disk('s3')->temporaryUrl(
+        $path,
+        now()->addMinutes(15)
+    );
+
+    return response()->json([
+        'download_url' => $url
+    ]);
+}
+
     /**
      * 2.3 下载接口
      */
-    public function download(Request $request)
+    public function download3(Request $request)
     {
         $request->validate([
             'url' => 'required|string',

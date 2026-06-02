@@ -51,7 +51,8 @@ class S3FileController extends Controller
 
         return response()->json([
             'success' => true,
-            'path' => $path
+            'path' => $path,
+            'filename' => $file->getClientOriginalName()
         ], 201);
     }
 

@@ -49,11 +49,11 @@ class S3FileController extends Controller
 
         Storage::disk('s3')->put($path, $content);
 
-        return response()->json([
-            'success' => true,
-            'path' => $path,
-            'filename' => $file->getClientOriginalName()
-        ], 201);
+return response()->json([
+    'success' => true,
+    'path' => $path,
+    'filename' => $fileName
+], 201);
     }
 
     public function download(Request $request)

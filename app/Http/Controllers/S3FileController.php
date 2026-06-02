@@ -41,7 +41,11 @@ public function download(Request $request)
 
         $url = Storage::disk('s3')->temporaryUrl(
             $path,
-            now()->addMinutes(15)
+            now()->addMinutes(15),
+            [
+            'ResponseContentDisposition' =>
+                'attachment'
+            ]
         );
 
         return response()->json([

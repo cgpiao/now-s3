@@ -56,22 +56,33 @@ return response()->json([
 ], 201);
     }
 
-    public function download(Request $request)
+public function download(Request $request)
 {
-    $request->validate([
-        'path' => 'required|string'
-    ]);
-
     $path = $request->input('path');
 
-    $url = Storage::disk('s3')->temporaryUrl(
-        $path,
-        now()->addMinutes(15)
-    );
+    try {
 
-    return response()->json([
-        'download_url' => $url
-    ]);
+        $exists = Storage::disk('s3')->exists($path);
+
+        $url = Storage::disk('s3')->temporaryUrl(
+            $path,
+            now()->addMinutes(15)
+        );
+
+        return response()->json([
+            'path' => $path,
+            'exists' => $exists,
+            'download_url' => $url
+        ]);
+
+    } catch (\Exception $e) {
+
+        return response()->json([
+            'path' => $path,
+            'error' => $e->getMessage()
+        ], 500);
+
+    }
 }
 
     /**

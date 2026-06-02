@@ -139,23 +139,18 @@ public function download(Request $request)
     public function delete(Request $request)
     {
         $request->validate([
-            'url' => 'required|string',
+            'path' => 'required|string'
         ]);
-
-        $url = $request->input('url');
-        $s3File = S3File::where('s3_url', $url)->first();
-
-        if (!$s3File) {
-            return response()->json(['message' => 'File not found in record'], 404);
-        }
-
-        if (Storage::disk('s3')->exists($s3File->s3_path)) {
-            Storage::disk('s3')->delete($s3File->s3_path);
-        }
-
-        $s3File->delete();
-
-        return response()->json(['message' => 'File deleted successfully']);
+    
+        $path = $request->input('path');
+    
+        Storage::disk('s3')->delete(
+            $path
+        );
+    
+        return response()->json([
+            'success' => true
+        ]);
     }
 
     /**
